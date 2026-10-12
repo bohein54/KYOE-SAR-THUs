@@ -144,7 +144,7 @@ tr:hover{ background:#2a3b5f; }
 
 <script>
 // ⚠️ အောက်ပါနေရာတွင် သင့်ရဲ့ Google Apps Script Web App URL ထည့်ပါ
-const SCRIPT_URL = "AKfycbztd3AtNwhYuRTYatUqdCMq4spANq3WOV64PYlFoVN5-c3Jv2NaL0oM-nFe2D7vJHaB";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztd3AtNwhYuRTYatUqdCMq4spANq3WOV64PYlFoVN5-c3Jv2NaL0oM-nFe2D7vJHaB/exec";
 
 let isLockedBySystem = true;
 let currentPage = 0;
