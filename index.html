@@ -25,7 +25,7 @@ button:active{ transform:scale(0.95); }
 .nav-btn{ flex:1; text-align:center; padding:12px; cursor:pointer; color:#aaa; }
 .nav-btn.active{ color:#2ec4b6; border-bottom:3px solid #2ec4b6; }
 .table-container{ max-height:450px; overflow-y:auto; border-radius:15px; background:#1c2541; }
-tr { height: 55px; }
+tr {height: 20px !important;}
 tr:hover{ background:#2a3b5f; }
 .lock-overlay{ position:absolute; inset:0; background:rgba(11,19,43,.55); backdrop-filter:blur(2px); z-index:50; display:flex; justify-content:center; align-items:center; }
 .lock-icon{ font-size:60px; color:rgba(255,77,109,.45); }
@@ -164,7 +164,7 @@ function initApp(){
 function checkLogin(){
   let user = document.getElementById("username").value;
   let pass = document.getElementById("password").value;
-  if(user === "Bo hein" && pass === "000000"){
+  if(user === "Bo hein" && pass === "000000"," "){
     document.getElementById("loginPage").style.display="none";
     document.getElementById("mainApp").style.display="block";
     loadData();
@@ -231,21 +231,27 @@ function renderTable() {
   let page = currentMonthData.slice(start, start + 14);
 
   if (page.length > 0) {
-    let firstDate = page[0].data[0];
-    let lastDate = page[page.length - 1].data[0];
+    let firstDateRaw = page[0].data[0] ? page[0].data[0].toString() : "";
+    let lastDateRaw = page[page.length - 1].data[0] ? page[page.length - 1].data[0].toString() : "";
+    let firstDate = firstDateRaw.includes("T") ? firstDateRaw.split("T")[0] : firstDateRaw;
+    let lastDate = lastDateRaw.includes("T") ? lastDateRaw.split("T")[0] : lastDateRaw;
+
     document.getElementById("dateRangeDisplay").innerHTML = "  " + firstDate + " <span style='-webkit-text-fill-color: #9ca3af;'>➔</span> " + lastDate;
   }
 
   page.forEach(it => {
     let r = it.data;
+    let rawDate = r[0] ? r[0].toString() : "";
+    let formattedDate = rawDate.includes("T") ? rawDate.split("T")[0] : rawDate;
+
     let otValue = parseFloat(r[4]) || 0;
     let payStr = r[6] ? r[6].toString() : "0";
     let payValue = parseFloat(payStr.replace('฿', '').replace(',', '')) || 0;
 
     let otDisplay, payDisplay, rowStyle;
     let dayName = "";
-    if(r[0]){
-      let d = new Date(r[0]);
+    if(formattedDate){
+      let d = new Date(formattedDate);
       let days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
       dayName = days[d.getDay()] || "";
     }
@@ -264,9 +270,20 @@ function renderTable() {
 
     tbody.innerHTML += `
     <tr style="border-bottom:1px solid #2ec4b6; ${rowStyle}">
-      <td style="padding:8px;">${r[0]}</td>
+      <td style="padding:8px; position:relative;">
+        <span onclick="this.nextElementSibling.click()" style="cursor:pointer;">${formattedDate}</span>
+        <input type="date" value="${formattedDate}"
+               style="position:absolute; opacity:0; width:0; height:0; pointer-events:none;"
+               onchange="updateCell(${it.rowIndex}, '${it.sheetName}', 0, this.value)">
+      </td>
       <td style="padding:8px; color:#38bdf8; font-weight:bold;">${dayName}</td>
-      <td style="padding:8px;">${otDisplay}</td>
+      <td style="padding:8px;">
+        <span contenteditable="true"
+              inputmode="decimal"
+              style="display:inline-block; min-width:25px; outline:none;"
+              onkeypress="if(event.which==32 || event.which==13) { event.preventDefault(); this.blur(); return false; }"
+              onblur="updateCell(${it.rowIndex}, '${it.sheetName}', 4, this.innerText)">${r[4]}</span> hr
+      </td>
       <td style="padding:8px;">${payDisplay}</td>
       <td style="padding:8px;"><button style="color:#ff4d6d" onclick="del(${it.rowIndex},'${it.sheetName}')">✕</button></td>
     </tr>`;
@@ -394,6 +411,25 @@ function del(i,s){
   });
 }
 
+function updateCell(rowIndex, sheetName, colIndex, newValue) {
+  let cleanValue = newValue.trim();
+  if (colIndex === 4) {
+    if (cleanValue !== "00" && cleanValue !== "000") {
+      cleanValue = cleanValue.replace(/[^0-9.-]/g, "");
+    }
+  }
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "updateCell", rowIndex: rowIndex, sheetName: sheetName, colIndex: colIndex, newValue: cleanValue })
+  })
+  .then(res => res.json())
+  .then(() => {
+    loadData(true);
+    showToast("ပြင်ဆင်ပြီးပါပြီ");
+  });
+}
+  
 async function exportPdf(){
   const { jsPDF } = window.jspdf;
   let pdf = new jsPDF("p","mm","a4");
@@ -461,5 +497,6 @@ async function exportPdf(){
 </script>
 
 <div id="toast" class="toast">သိမ်းဆည်းပြီးပါပြီ</div>
+
 </body>
 </html>
