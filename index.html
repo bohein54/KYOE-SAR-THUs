@@ -7,11 +7,11 @@
 <link rel="icon"
 type="image/png"
 sizes="192x192"
-href="https://i.postimg.cc/L473n1hp/Logo.png">
+href="https://i.postimg.cc/4KyyNxHX/20260405-125012.png">
 
 <link rel="apple-touch-icon"
 sizes="180x180"
-href="https://i.postimg.cc/L473n1hp/Logo.png">
+href="https://i.postimg.cc/4KyyNxHX/20260405-125012.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b132b">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -370,10 +370,13 @@ function saveData(){
   .then(res => {
     btn.disabled = false;
     btn.innerText = "ADD RECORD";
+    
+    // ✅ ရက်စွဲရှိပြီးသားဖြစ်နေရင် Apps Script က ပို့လာတဲ့ message ကို Error အနေနဲ့ပြရန်
     if(!res.success){
-      showToast("အမှားအယွင်းရှိပါသည်","error");
+      showToast(res.message || "ဒီရက်စွဲအတွက် မှတ်တမ်းရှိပြီးသား ဖြစ်နေပါပြီ!", "error");
       return;
     }
+    
     showToast("သိမ်းဆည်းပြီးပါပြီ");
     document.getElementById("monthView").value = res.month;
     loadData();
@@ -381,7 +384,7 @@ function saveData(){
   .catch(err => {
     btn.disabled = false;
     btn.innerText = "ADD RECORD";
-    showToast("ချိတ်ဆက်မှု အမှားရှိသည်","error");
+    showToast("ချိတ်ဆက်မှု အမှားရှိသည်", "error");
   });
 }
 
